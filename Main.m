@@ -1,16 +1,19 @@
 % Define the black box function
 blackBoxFunction = @(x) (x - 3).^4 - 10*(x - 3).^2 + 7*sin(x) + 5;
 
+%blackBoxFunction = @(T) (1 ./ (1 + exp(-0.1 * (T - 50)))) .* (0.8 - 0.2 * cos(0.1 * T)) + 0.1 * sin(0.3 * T);
+
 
 
 % Set initial parameters
-seedPoints = [0; 7];
+seedPoints = [0; 5];
 minOrder = 4;
-maxOrder = 7;
-g = 10;
+maxOrder = 8;
+g = 20;
 a = 1; % Coefficient for mean
-b = 3; % Initial coefficient for information (spread)
+b = 6; % Initial coefficient for information (spread)
 iterationCount = 1;
+
 
 % Initialize table to log models and exploration points
 logTable = table('Size', [0 3], 'VariableTypes', {'double', 'double', 'double'}, 'VariableNames', {'Iteration', 'ExplorationPoint', 'ExplorationY'});
@@ -19,7 +22,7 @@ logTable = table('Size', [0 3], 'VariableTypes', {'double', 'double', 'double'},
 runInitialAnalysis(seedPoints, blackBoxFunction, minOrder, maxOrder, g, []);
 
 % Find the next exploration point iteratively
-for iteration = 1:7
+for iteration = 1:10
     % Find the next exploration point
     [x_opt, modelCoefficients] = findNextExplorationPoint(seedPoints, blackBoxFunction, minOrder, maxOrder, a, b, g, iterationCount);
     

@@ -11,7 +11,7 @@ function [x_opt, modelCoefficients, combinedMeanPredictions] = findNextExplorati
     % Initial guess for x
     x0 = mean(seedPoints); % Initial guess can be the mean of known x values
 
-    % Optimization
+    % Optimization with constraints to ensure x_opt is within safe boundaries
     x_opt = fmincon(objectiveFunction, x0, [], [], [], [], min(seedPoints), max(seedPoints), [], options);
     
     % Log the model coefficients
@@ -22,7 +22,7 @@ function [x_opt, modelCoefficients, combinedMeanPredictions] = findNextExplorati
     end
     
     % Calculate combined mean predictions for logging
-    xFit = linspace(min(seedPoints)-2, max(seedPoints)+2, 100)';
+    xFit = linspace(min(seedPoints)-10, max(seedPoints)+10, 100)';
     combinedMeanPredictions = calculateMeanPredictions(modelCoefficients, xFit, minOrder);
 end
 

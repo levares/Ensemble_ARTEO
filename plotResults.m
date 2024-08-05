@@ -75,7 +75,8 @@ function plotResults(seedPoints, observations, ensembleModels, xFit, combinedMea
     end
 
     % Zoom in on the y-axis to focus on values within g
-    ylim([min(combinedMeanPredictions(safeIndices)) - 1, g + 1]);
+
+    ylim([min(observations) - Differences/2, max(observations) + Differences/2]);
     xlim([min(seedPoints) - 1, max(seedPoints) + 1]); % Focus on the region around known points
 
     title('Real BBF and Mean Prediction with Safe Restriction');

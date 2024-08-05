@@ -47,8 +47,16 @@ function [ensembleModels, combinedMeanPredictions, combinedStdPredictions, combi
     combinedStdPredictions = combinedStdPredictions / combinationCount;
     combinedSpreadPredictions = combinedSpreadPredictions / combinationCount;
 
-    % Constrain the maximum value of the black box function to be less than g
+    % Constrain the values of the black box function to be within the safety bounds
     safeIndices = find(combinedMeanPredictions <= g);
-    safeXMin = min(xFit(safeIndices));
-    safeXMax = max(xFit(safeIndices));
+    if isempty(safeIndices)
+        % If no points are within the safety bounds, use the full range of xFit
+        safeXMin = min(xFit);
+        safeXMax = max(xFit);
+    else
+        % Otherwise, use the range of xFit where the predictions are within the safety bounds
+        safeXMin = min(xFit(safeIndices));
+        safeXMax = max(xFit(safeIndices));
+    end
+    
 end
