@@ -1,4 +1,7 @@
-function plotResults(seedPoints, observations, ensembleModels, xFit, combinedMeanPredictions, combinedStdPredictions, combinedSpreadPredictions, safeIndices, safeXMin, safeXMax, g, blackBoxFunction, newExplorationPoint)
+function plotResults
+    global seedPoints observations xFit blackBoxFunction localMax
+    global combinedMeanPredictions combinedStdPredictions combinedSpreadPredictions safeIndices safeXMin safeXMax safePredictions newExplorationPoint ensembleModels
+
     figure;
 
     % Subplot 1: Seed points and ensemble fittings using all seed points
@@ -25,9 +28,9 @@ function plotResults(seedPoints, observations, ensembleModels, xFit, combinedMea
     title('Ensemble Fittings with All Seed Points');
     xlabel('x');
     ylabel('y');
-    Differences = max(observations) - min(observations);
-    ylim([min(observations) - Differences/2, max(observations) + Differences/2]);
-    xlim([min(seedPoints) - 1, max(seedPoints) + 1]); % Focus on the region around known points
+    % Zoom in 
+    Differences = max(safePredictions) - min(safePredictions);
+    ylim([min(safePredictions) - Differences/2, max(safePredictions) + Differences/2]);
     legend([plotHandles; scatterHandle], [arrayfun(@(i) sprintf('Poly %d', i), 1:maxOrder, 'UniformOutput', false), 'Seed Points'], 'Location', 'Best');
     hold off;
 
@@ -47,7 +50,16 @@ function plotResults(seedPoints, observations, ensembleModels, xFit, combinedMea
     xline(safeXMax, 'r--', 'HandleVisibility','off');
 
     % Plot the black box function values at seed points on top
-    scatter(seedPoints, observations, 'filled', 'k', 'DisplayName', 'Seed Points');
+    scatter(seedPoints, observations, 'filled', 'k');
+
+    % Highlight the new exploration point if provided
+    if ~isempty(newExplorationPoint)
+        scatter(newExplorationPoint, blackBoxFunction(newExplorationPoint), 'filled', 'MarkerFaceColor', 'm', 'MarkerEdgeColor', 'm', 'DisplayName', 'New Point'); % Purple dot for new point
+    end
+    % Zoom in 
+    ylim([min(safePredictions) - Differences/2, max(safePredictions) + Differences/2]);
+    xlim([safeXMin-2, safeXMax+2]); % Focus on the region around known points
+    hold off;
 
     yyaxis right;
     plot(xFit(safeIndices), combinedStdPredictions(safeIndices), 'r-', 'LineWidth', 2, 'DisplayName', 'Std Deviation');
@@ -55,9 +67,11 @@ function plotResults(seedPoints, observations, ensembleModels, xFit, combinedMea
 
     title('Ensemble Mean, Spread, and Std with Safe Restriction');
     xlabel('x');
-    xlim([min(seedPoints) - 1, max(seedPoints) + 1]); % Focus on the region around known points
+    xlim([safeXMin, safeXMax]); % Focus on the region around known points
     legend('show', 'Location', 'Best');
-    hold off;
+
+    
+
 
     % Subplot 3: Real BBF and mean prediction with safe restriction
     subplot(2, 2, [3 4]);
@@ -74,10 +88,15 @@ function plotResults(seedPoints, observations, ensembleModels, xFit, combinedMea
         scatter(newExplorationPoint, blackBoxFunction(newExplorationPoint), 'filled', 'MarkerFaceColor', 'm', 'MarkerEdgeColor', 'm','DisplayName', 'New Point'); % Purple dot for new point
     end
 
-    % Zoom in on the y-axis to focus on values within g
+    % Plot the local maximum as a blue dotted line
+    safeXFit = xFit(xFit >= safeXMin & xFit <= safeXMax);
+    safePredictions = combinedMeanPredictions(xFit >= safeXMin & xFit <= safeXMax);
+    yline(max(safePredictions), 'b--', 'DisplayName', 'Local Max');
 
-    ylim([min(observations) - Differences/2, max(observations) + Differences/2]);
-    xlim([min(seedPoints) - 1, max(seedPoints) + 1]); % Focus on the region around known points
+    % Zoom in 
+    Differences = max(safePredictions) - min(safePredictions);
+    ylim([min(safePredictions) - Differences/2, max(safePredictions) + Differences/2]);
+    xlim([safeXMin-2, safeXMax+2]); % Focus on the region around known points
 
     title('Real BBF and Mean Prediction with Safe Restriction');
     xlabel('x');

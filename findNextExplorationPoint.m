@@ -1,6 +1,9 @@
-function [x_opt, modelCoefficients, combinedMeanPredictions] = findNextExplorationPoint(seedPoints, blackBoxFunction, minOrder, maxOrder, a, b, g, iterationCount)
+function findNextExplorationPoint(a, b, iterationCount)
+    global seedPoints blackBoxFunction minOrder maxOrder g
+    global x_opt modelCoefficients combinedMeanPredictions newExplorationPoint safeXMin safeXMax
+
     % Adjust the weight for information based on the iteration count
-    adjusted_b = b * (0.9 ^ (iterationCount - 1));
+    adjusted_b = b * (0.85 ^ (iterationCount - 1));
 
     % Define the objective function for fmincon
     objectiveFunction = @(x) objective_ensemble(x, seedPoints, blackBoxFunction, minOrder, maxOrder, a, adjusted_b);
@@ -11,9 +14,21 @@ function [x_opt, modelCoefficients, combinedMeanPredictions] = findNextExplorati
     % Initial guess for x
     x0 = mean(seedPoints); % Initial guess can be the mean of known x values
 
+    % Set bounds for optimization
+    if iterationCount == 1
+        lb = min(seedPoints);
+        ub = max(seedPoints);
+    else
+        lb = safeXMin;
+        ub = safeXMax;
+    end
+
     % Optimization with constraints to ensure x_opt is within safe boundaries
-    x_opt = fmincon(objectiveFunction, x0, [], [], [], [], min(seedPoints), max(seedPoints), [], options);
+    x_opt = fmincon(objectiveFunction, x0, [], [], [], [], lb, ub, [], options);
     
+    % Update newExplorationPoint
+    newExplorationPoint = x_opt;
+
     % Log the model coefficients
     observations = blackBoxFunction(seedPoints);
     modelCoefficients = cell(maxOrder - minOrder + 1, 1);

@@ -1,5 +1,7 @@
-%% Fit ensemble models and calculate combined predictions
-function [ensembleModels, combinedMeanPredictions, combinedStdPredictions, combinedSpreadPredictions, safeIndices, safeXMin, safeXMax] = analyzeEnsemble(seedPoints, observations, minOrder, maxOrder, xFit, blackBoxFunction, g)
+function analyzeEnsemble(minOrder, maxOrder)
+    global seedPoints observations xFit blackBoxFunction g
+    global combinedMeanPredictions combinedStdPredictions combinedSpreadPredictions safeIndices safeXMin safeXMax ensembleModels
+
     % Fit ensemble models
     ensembleModels = cell(maxOrder - minOrder + 1, 1);
     for i = minOrder:maxOrder
@@ -42,21 +44,13 @@ function [ensembleModels, combinedMeanPredictions, combinedStdPredictions, combi
         end
     end
 
-    % Average the accumulated results
+    % Finalize combined results by averaging
     combinedMeanPredictions = combinedMeanPredictions / combinationCount;
     combinedStdPredictions = combinedStdPredictions / combinationCount;
     combinedSpreadPredictions = combinedSpreadPredictions / combinationCount;
 
-    % Constrain the values of the black box function to be within the safety bounds
+    % Determine safe indices and boundaries
     safeIndices = find(combinedMeanPredictions <= g);
-    if isempty(safeIndices)
-        % If no points are within the safety bounds, use the full range of xFit
-        safeXMin = min(xFit);
-        safeXMax = max(xFit);
-    else
-        % Otherwise, use the range of xFit where the predictions are within the safety bounds
-        safeXMin = min(xFit(safeIndices));
-        safeXMax = max(xFit(safeIndices));
-    end
-    
+    safeXMin = min(xFit(safeIndices));
+    safeXMax = max(xFit(safeIndices));
 end
